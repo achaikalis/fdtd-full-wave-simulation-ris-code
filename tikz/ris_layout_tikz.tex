@@ -1,0 +1,245 @@
+\documentclass[10pt]{article}
+
+% Detailed RIS planar-array diagram.
+% Parameters are taken from docs/design/requirements.md and cross-checked
+% against ris_system/config.py.
+% Compile with xelatex for the Cochin system font.
+\usepackage{amsmath}
+\usepackage{fontspec}
+\setmainfont{Cochin}
+\usepackage[paperwidth=22.0cm,paperheight=24.0cm,margin=3mm]{geometry}
+\usepackage{tikz}
+\pagestyle{empty}
+\usetikzlibrary{arrows.meta,calc,positioning}
+
+\begin{document}
+\noindent
+\begin{tikzpicture}[
+  x=0.044cm,
+  y=0.044cm,
+  >=Latex,
+  line cap=round,
+  line join=round,
+  font=\rmfamily\scriptsize,
+  domainbox/.style={draw=black, line width=0.55pt},
+  majorgrid/.style={draw=black!38, line width=0.18pt},
+  minorgrid/.style={draw=black!18, line width=0.10pt},
+  substrate/.style={draw=black!50, fill=orange!30, line width=0.45pt},
+  patch/.style={draw=black, fill=yellow!78!orange, line width=0.38pt},
+  active/.style={draw=magenta!82!black, line width=0.56pt},
+  bias/.style={draw=purple!70!black, dashed, dash pattern=on 2pt off 2pt, line width=0.30pt},
+  ground/.style={draw=black, fill=black!72, line width=0.38pt},
+  dim/.style={Latex-Latex, draw=black, line width=0.42pt},
+  leader/.style={-Latex, draw=black, line width=0.34pt},
+  callout/.style={
+    draw=black,
+    fill=white,
+    line width=0.42pt,
+    rounded corners=0pt,
+    inner xsep=3.0pt,
+    inner ysep=2.4pt,
+    align=left,
+    font=\rmfamily\scriptsize
+  },
+  ticklabel/.style={font=\rmfamily\tiny, inner sep=1pt},
+  tinylabel/.style={font=\rmfamily\tiny, fill=white, inner sep=0.8pt}
+]
+
+% Geometry, in millimeters unless otherwise stated.
+% requirements.md: grid 220 x 110 x 220, RIS domain 120 x 10 x 120 cells.
+% config.py: rows=10, cols=10, patch=10 mm, pitch=110/9 mm,
+% substrate thickness=1.0 mm, PEC thickness=35 um, varactor cells=1 mm.
+\def\Rows{10}
+\def\Cols{10}
+\def\Patch{10}
+\def\Pitch{110/9}
+\def\Gap{20/9}
+\def\Aperture{120}
+\def\Domain{220}
+\def\DomainHalf{110}
+\def\Substrate{120}
+\def\SubHalf{60}
+\def\Start{-55}
+\def\MetalUm{35}
+\def\SubThick{1.0}
+\def\VaractorCell{1}
+
+% Drawing bounds include perimeter callouts.
+\clip (-260,-245) rectangle (260,210);
+
+% Background computational x-z slice grid.
+\foreach \x in {-110,-105,...,110} {
+  \draw[minorgrid] (\x,-110) -- (\x,110);
+}
+\foreach \z in {-110,-105,...,110} {
+  \draw[minorgrid] (-110,\z) -- (110,\z);
+}
+\foreach \x in {-100,-75,-50,-25,0,25,50,75,100} {
+  \draw[majorgrid] (\x,-110) -- (\x,110);
+}
+\foreach \z in {-100,-75,-50,-25,0,25,50,75,100} {
+  \draw[majorgrid] (-110,\z) -- (110,\z);
+}
+\draw[domainbox] (-\DomainHalf,-\DomainHalf) rectangle (\DomainHalf,\DomainHalf);
+
+% Substrate and active array.
+\filldraw[substrate] (-\SubHalf,-\SubHalf) rectangle (\SubHalf,\SubHalf);
+\node[tinylabel, anchor=south west] at (-\SubHalf,-\SubHalf) {Υπόστρωμα};
+
+% Bias/interconnect routing, schematic because requirements do not define
+% bias voltages or exact trace dimensions.
+\foreach \j in {0,...,9} {
+  \pgfmathsetmacro{\zc}{\Start + \j*\Pitch}
+  \draw[bias] (-\SubHalf,\zc) -- (\SubHalf,\zc);
+}
+\foreach \i in {0,...,9} {
+  \pgfmathsetmacro{\xc}{\Start + \i*\Pitch}
+  \draw[bias] (\xc,-\SubHalf) -- (\xc,\SubHalf);
+}
+
+% PEC patches: 10 x 10 array.
+\foreach \i in {0,...,9} {
+  \foreach \j in {0,...,9} {
+    \pgfmathsetmacro{\cx}{\Start + \i*\Pitch}
+    \pgfmathsetmacro{\cz}{\Start + \j*\Pitch}
+    \filldraw[patch] ({\cx-\Patch/2},{\cz-\Patch/2})
+      rectangle ({\cx+\Patch/2},{\cz+\Patch/2});
+  }
+}
+
+% Varactor/interconnect devices: 90 horizontal + 90 vertical = 180.
+\foreach \i in {0,...,8} {
+  \foreach \j in {0,...,9} {
+    \pgfmathsetmacro{\xgap}{\Start + \i*\Pitch + 0.5*\Pitch}
+    \pgfmathsetmacro{\zc}{\Start + \j*\Pitch}
+    \draw[active] (\xgap-0.5,\zc) -- (\xgap+0.5,\zc);
+    \draw[active] (\xgap,\zc-0.5) -- (\xgap,\zc+0.5);
+  }
+}
+\foreach \i in {0,...,9} {
+  \foreach \j in {0,...,8} {
+    \pgfmathsetmacro{\xc}{\Start + \i*\Pitch}
+    \pgfmathsetmacro{\zgap}{\Start + \j*\Pitch + 0.5*\Pitch}
+    \draw[active] (\xc-0.5,\zgap) -- (\xc+0.5,\zgap);
+    \draw[active] (\xc,\zgap-0.5) -- (\xc,\zgap+0.5);
+  }
+}
+
+% Representative unit-cell highlight: randomly selected cell(i,j) = (4,7),
+% using one-indexed notation with i along +x and j along +z.
+\draw[black, line width=0.85pt] (-24.444,12.222) rectangle (-12.222,24.444);
+\fill[black] (0,0) circle[radius=1.0pt];
+\node[tinylabel, anchor=south west] at (1,1) {Κέντρο};
+
+% Axes and ticks.
+\foreach \x in {-100,-50,0,50,100} {
+  \draw[black, line width=0.35pt] (\x,-110) -- (\x,-114);
+  \node[ticklabel, anchor=north] at (\x,-116) {\x};
+}
+\foreach \z in {-100,-50,0,50,100} {
+  \draw[black, line width=0.35pt] (-110,\z) -- (-114,\z);
+  \node[ticklabel, anchor=east] at (-116,\z) {\z};
+}
+\node[font=\rmfamily\small, anchor=north] at (0,-126) {$x$ (mm)};
+\node[font=\rmfamily\small, rotate=90, fill=white, inner sep=1pt] at (-126,0) {$z$ (mm)};
+
+% Dimension annotations.
+\draw[dim] (-\DomainHalf,122) -- node[above=2pt] {$220$ mm} (\DomainHalf,122);
+\draw[dim] (122,-\DomainHalf) -- node[right=2pt, rotate=90] {$220$ mm} (122,\DomainHalf);
+\draw[dim] (-60,76) -- node[above=2pt] {$120$ mm active aperture} (60,76);
+\draw[dim] (76,-60) -- node[right=2pt, rotate=90] {$120$ mm active aperture} (76,60);
+
+% Perimeter callouts with leader arrows.
+\node[callout, text width=46mm, anchor=east] (matbox) at (-150,44)
+  {\textbf{Υλικά}\\
+  \vspace{0.5em}
+  Patch: PEC, \\
+  \vspace{0.5em}
+  Επίπεδο Γείωσης: PEC \\
+  \vspace{0.5em}
+  Υπόστρωμα: $\varepsilon_r=4.4$ και $\sigma=0.0025$ S/m};
+\draw[leader] (matbox.east) -- (-58,58);
+
+\node[callout, text width=38mm, anchor=west] (elecbox) at (135,68)
+  {\textbf{Διασυνδέσεις}\\
+  \vspace{0.5em}
+  Στοιχεία: $180 \times$ varactor δίοδοι \\
+  \vspace{0.5em}
+  Κλειστό Κύκλωμα: $C=1.0$ pF \\
+  \vspace{0.5em}
+  Ανοιχτό Κύκλωμα: $C=0.1$ pF \\
+  \vspace{0.5em}
+  Πόλωση: V/H};
+\draw[leader] (elecbox.west) -- (11,54);
+
+\node[callout, text width=42mm, anchor=east] (geomBox) at (-158,-12)
+  {\textbf{Μοναδιαίο Κελί}\\
+  \vspace{0.5em}
+  Array: $10 \times 10$ cells \\
+  \vspace{0.5em}
+  Patch: $10 \times 10$ mm\\
+  \vspace{0.5em}
+  Pitch: $110/9$ mm\\
+  \vspace{0.5em}
+  Gap: $20/9$ mm\\
+  \vspace{0.5em}
+  Varactor cell: $1$ mm};
+\draw[leader] (geomBox.east) -- (-17,19);
+
+% Enlarged representative unit-cell inset, framed as the zoomed annotation.
+\begin{scope}[shift={(-226,-126)}, x=2.15mm, y=2.15mm]
+  \coordinate (zoomBoxNW) at (-6.8,16.2);
+  \coordinate (zoomBoxNE) at (18.2,16.2);
+  \coordinate (zoomBoxSW) at (-6.8,-3.6);
+  \coordinate (zoomBoxSE) at (18.2,-3.6);
+  \coordinate (zoomJoinTop) at (18.2,10.8);
+  \coordinate (zoomJoinBottom) at (18.2,0.6);
+  \filldraw[draw=black, fill=white, line width=0.42pt]
+    (zoomBoxSW) rectangle (zoomBoxNE);
+  \node[font=\rmfamily\scriptsize, anchor=west] at (-6.0,15.1) {};
+  \draw[black!30, line width=0.28pt] (0,0) rectangle ({\Pitch},{\Pitch});
+  \filldraw[patch] ({\Gap/2},{\Gap/2})
+    rectangle ({\Gap/2+\Patch},{\Gap/2+\Patch});
+  \draw[active] ({\Pitch},{\Pitch/2}) -- ({\Pitch+\VaractorCell},{\Pitch/2});
+  \draw[active] ({\Pitch/2},{\Pitch}) -- ({\Pitch/2},{\Pitch+\VaractorCell});
+  \draw[dim] (0,-1.4) -- node[below=1pt] {$110/9$ mm pitch} ({\Pitch},-1.4);
+  \draw[dim] ({\Gap/2},{\Pitch+0.8}) -- node[above=1pt] {$10$ mm patch}
+    ({\Gap/2+\Patch},{\Pitch+0.8});
+  \draw[dim] ({\Gap/2+\Patch},{0.7*\Pitch}) -- ({\Pitch},{0.7*\Pitch});
+  \node[font=\rmfamily\tiny, anchor=east, fill=white, inner sep=0.6pt]
+    at (17.7,{0.7*\Pitch}) {$20/9$ mm gap};
+  \draw[-Latex, black, line width=0.28pt] (-5.2,1.0) -- (-1.6,1.0)
+    node[anchor=west, font=\rmfamily\tiny] {$+x$};
+  \draw[-Latex, black, line width=0.28pt] (-5.2,1.0) -- (-5.2,4.6)
+    node[anchor=south, font=\rmfamily\tiny] {$+z$};
+\end{scope}
+\draw[black, line width=0.34pt] (-24.444,2.444) -- (zoomJoinTop);
+\draw[black, line width=0.34pt] (-24.444,12.222) -- (zoomJoinBottom);
+
+% Side-view stack slice, separated from the plan-view graph at the page bottom.
+\begin{scope}[shift={(22,-207)}, x=1mm, y=1mm]
+  \draw[black, fill=white, line width=0.42pt] (-58,-15) rectangle (58,25);
+  \node[font=\rmfamily\scriptsize, anchor=north west, align=left] at (-55,22)
+    {\textbf{Τομή}};
+
+  \draw[black!30, line width=0.25pt] (-30,6) rectangle (30,11);
+  \filldraw[patch] (-25,7) rectangle (25,10);
+  \filldraw[substrate] (-30,-1) rectangle (30,6);
+  \filldraw[ground] (-30,-4) rectangle (30,-1);
+
+  \node[font=\rmfamily\tiny, anchor=west] at (33,8.5) {PEC Patch};
+  \node[font=\rmfamily\tiny, anchor=west] at (33,2.5) {Υπόστρωμα, $1.0$ mm};
+  \node[font=\rmfamily\tiny, anchor=west] at (33,-2.5) {PEC Επίπεδο Γείωσης};
+
+  \draw[dim] (-34,-1) -- node[left=1pt, font=\rmfamily\tiny] {$1.0$ mm} (-34,6);
+  \draw[dim] (-25,10.7) -- node[above=1pt, font=\rmfamily\tiny] {$10$ mm} (25,10.7);
+  \draw[dim] (-30,-5.8) -- node[below=1pt, font=\rmfamily\tiny] {$110/9$ mm pitch} (31.111,-5.8);
+
+  \draw[-Latex, black, line width=0.28pt] (-46,-7) -- (-36,-7)
+    node[anchor=west, font=\rmfamily\tiny] {$+x$};
+  \draw[-Latex, black, line width=0.28pt] (-46,-7) -- (-46,4)
+    node[anchor=south, font=\rmfamily\tiny] {$+y$};
+\end{scope}
+
+\end{tikzpicture}
+\end{document}

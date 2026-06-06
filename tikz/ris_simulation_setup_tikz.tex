@@ -1,0 +1,125 @@
+\documentclass[10pt]{article}
+
+% Self-contained black-and-white TikZ flow diagram for PDF/SVG export.
+\usepackage{amsmath}
+\usepackage{fontspec}
+\setmainfont{Cochin}
+\usepackage[paperwidth=10.8cm,paperheight=16.2cm,margin=2mm]{geometry}
+\usepackage{tikz}
+\pagestyle{empty}
+\usetikzlibrary{arrows.meta,calc,positioning}
+
+\begin{document}
+\noindent
+\begin{tikzpicture}[
+  >=Latex,
+  line cap=round,
+  line join=round,
+  font=\rmfamily\scriptsize,
+  node distance=4.2mm,
+  flowstep/.style={
+    draw=black,
+    fill=black!5,
+    line width=0.55pt,
+    minimum width=9.35cm,
+    text width=8.85cm,
+    minimum height=10.4mm,
+    align=left,
+    inner xsep=2.5mm,
+    inner ysep=1.9mm
+  },
+  statebox/.style={
+    draw=black,
+    fill=white,
+    line width=0.45pt,
+    text width=4.18cm,
+    minimum height=9.5mm,
+    align=left,
+    inner xsep=2.2mm,
+    inner ysep=1.6mm
+  },
+  arrow/.style={-Latex, draw=black, line width=0.55pt},
+  branch/.style={draw=black, line width=0.45pt},
+  small/.style={font=\rmfamily\tiny}
+]
+
+% Main workflow.
+\node[flowstep] (domain) {
+  \textbf{1. Ορισμός Υπολογιστικού Πεδίου}\\
+  Διαστάσεις: $220 \times 110 \times 220$ mm;\quad PML απορρόφηση;\quad Bloch ΣΣ στις πλευρικές έδρες
+};
+
+\node[flowstep, below=of domain] (regions) {
+  \textbf{2. Ορισμός Υπολογιστικών Υποτομέων}\\
+  RIS: $120 \times 10 \times 120$ mm;\quad Συνολικό Πεδίο: $30 \times 30 \times 30$ mm;\quad Σκεδαζόμενο Πεδίο: $20 \times 20 \times 20$ mm
+};
+
+\node[flowstep, below=of regions] (materials) {
+  \textbf{3. Ορισμός RIS Γεωμετρίας}\\
+  RIS Επιφάνεια: PEC: $10 \times 10$;\quad Διασυνδέσεις: 180 varactor δίοδοι ως $1$ mm\textsuperscript{3} κελιά;\quad Υπόστρωμα: $\varepsilon_r=4.4$, $\sigma=0.0025$ S/m;\quad Επίπεδο Γείωσης
+};
+
+\node[statebox, below left=5.0mm and 0.25mm of materials.south, anchor=north east] (closed) {
+  \textbf{α) Closed state}\\
+  Varactors: $C=1.0$ pF
+};
+
+\node[statebox, below right=5.0mm and 0.25mm of materials.south, anchor=north west] (open) {
+  \textbf{β) Open state}\\
+  Varactors: $C=0.1$ pF
+};
+
+\coordinate (stateJoin) at ($(closed.south)!0.5!(open.south)+(0,-0.42)$);
+
+\node[flowstep, below=8.5mm of stateJoin] (excitation) {
+  \textbf{4. Εφαρμογή Διέγερσης}\\
+  Επίπεδο κύμα με γωνία πρόσπτωσης (σφαιρικό σύστημα συντεταγμένων): $(\alpha,\theta,\phi)=(1.57,0.78,0.78)$;\quad Εύρος Συχνοτήτων: $0.8$ -- $8.4$ GHz (Sub-6GHz 5G)
+};
+
+\node[flowstep, below=of excitation] (time) {
+  \textbf{5. Εκτέλεση της FDTD}\\
+  Κεντρική Συχνότητα: $f_0=4.6$ GHz;\quad BW $=7.6$ GHz;\quad $\Delta t=1.5$ ps;\quad Διάρκεια: 100 περίοδοι
+};
+
+\node[flowstep, below=of time] (probes) {
+  \textbf{6. Σημεία Ανίχνευσης}\\
+  P1 $(10,100,10)$;\quad P2 $(10,100,100)$;\quad P3 $(210,100,210)$
+};
+
+\node[flowstep, below=of probes] (outputs) {
+  \textbf{7. Αποτελέσματα}\\
+  Κατόπιν εκτέλεσης της FDTD εξάγονται οι μετρικές:
+  \vspace{1.5mm}\\
+  {\renewcommand{\arraystretch}{1.18}
+  \begin{tabular}{|l|c|c|c|}
+    \hline
+    \textbf{Σενάριο} & \textbf{$f_{\mathrm{dom}}$ (GHz)} & \textbf{Peak (dB)} & \textbf{RMS (dB)} \\
+    \hline
+    Low cap. $(0.1\,\mathrm{pF})$ & 3.675 & -85.59 & -114.16 \\
+    \hline
+    High cap. $(1.0\,\mathrm{pF})$ & 3.700 & -85.59 & -114.20 \\
+    \hline
+  \end{tabular}}\\
+  \vspace{1.0mm}
+  Γραφικές: $E_y(t)$ στα P1 -- P3 και κατανομή πεδίου σε 2D επίπεδο.
+};
+
+% Main arrows.
+\draw[arrow] (domain) -- (regions);
+\draw[arrow] (regions) -- (materials);
+\draw[arrow] (materials.south) -- ++(0,-0.22);
+\draw[branch] ($(materials.south)+(0,-0.22)$) -| (closed.north);
+\draw[branch] ($(materials.south)+(0,-0.22)$) -| (open.north);
+\draw[branch] (closed.south) |- (stateJoin);
+\draw[branch] (open.south) |- (stateJoin);
+\draw[arrow] (stateJoin) -- (excitation.north);
+\draw[arrow] (excitation) -- (time);
+\draw[arrow] (time) -- (probes);
+\draw[arrow] (probes) -- (outputs);
+
+% Footer scale note.
+\node[small, align=center, anchor=north] at ($(outputs.south)+(0,-0.38)$)
+  {Το διάγραμμα διαβάζεται από πάνω προς τα κάτω.\\ Οι αριθμοί των κουτιών υποδεικνύουν τη σειρά εκτέλεσης των βημάτων.};
+
+\end{tikzpicture}
+\end{document}

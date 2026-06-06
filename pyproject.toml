@@ -1,0 +1,21 @@
+[project]
+name = "tidy3d-notebooks"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "ipykernel>=7.2.0",
+    "jupyterlab>=4.5.7",
+    "matplotlib>=3.10.9",
+    "SciencePlots>=2.1.1",
+    "numpy>=2.4.6",
+    "pandas>=3.0.3",
+    "scipy>=1.17.1",
+    "tidy3d>=2.11.2",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.14",
+]

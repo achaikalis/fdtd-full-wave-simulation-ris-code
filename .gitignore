@@ -1,0 +1,29 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environments
+.venv/
+
+# OS/editor-local files
+.DS_Store
+.vscode/
+
+# Tidy3D/local simulation outputs
+results/
+reports/
+
+# TeX generated files
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+tikz/missfont.log
