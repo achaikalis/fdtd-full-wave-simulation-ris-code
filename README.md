@@ -1,6 +1,6 @@
-# Reproduction of the paper "FDTD Full Wave Simulations of Reconfigurable  Intelligent Surfaces"
+# Implementation of the paper "FDTD Full Wave Simulations of Reconfigurable  Intelligent Surfaces"
 
-Python workflow for reproducing the RIS simulation setup described by Colella et al. using Tidy3D. The code builds the RIS geometry, material stack, lumped varactor states, monitors, cost estimates, plots, and TikZ design diagrams.
+An independent Python code implementation of the RIS simulation setup described by Colella et al. using Tidy3D. The code builds the RIS geometry, material stack, lumped varactor states, monitors, cost estimates, plots, and TikZ design diagrams.
 
 ## Setup
 
@@ -49,3 +49,9 @@ xelatex -interaction=nonstopmode -halt-on-error ris_simulation_setup_tikz.tex
 	annote = {Comment: Accepted in EMC Europe 2023},
 	annote = {Comment: Accepted in EMC Europe 2023},
 }
+
+## Licenses
+
+This is not the original code from the authors.
+
+The implementation is released under the MIT License.
