@@ -16,10 +16,6 @@ wheels/
 .DS_Store
 .vscode/
 
-# Tidy3D/local simulation outputs
-results/
-reports/
-
 # TeX generated files
 *.aux
 *.log
