@@ -14,7 +14,7 @@ class SourceFactory:
     def build_source(self) -> td.PlaneWave:
         source_center = (
             0.0,
-            -self.config.domain.size_um[1] / 2.0 + self.config.source.source_center_offset_um,
+            self.config.domain.size_um[1] / 2.0 - self.config.source.source_center_offset_um,
             0.0,
         )
         pulse = td.GaussianPulse(
@@ -25,7 +25,7 @@ class SourceFactory:
             "center": source_center,
             "size": (td.inf, 0.0, td.inf),
             "source_time": pulse,
-            "direction": self.config.source.direction,
+            "direction": "-",
             "pol_angle": self.config.source.pol_angle_rad,
             "num_freqs": self.config.source.num_freqs,
             "name": "incident_plane_wave",
